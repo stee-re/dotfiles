@@ -637,3 +637,10 @@ if [[ "$(tty)" == "/dev/tty1" ]] && [ -f "$HOME/.xinitrc" ] && grep -q "^exec dw
 fi
 
 alias lg='lazygit'
+
+restow() {
+  (
+    cd "$HOME/dotfiles" || return
+    git pull --ff-only && stow --restow */
+  )
+}
