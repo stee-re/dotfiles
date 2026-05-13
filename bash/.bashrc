@@ -617,7 +617,7 @@ function hb {
 # Set the ultimate amazing command prompt
 #######################################################
 
-export PATH=$PATH:"$HOME/.local/bin:$HOME/.cargo/bin:/var/lib/flatpak/exports/bin:/.local/share/flatpak/exports/bin"
+export PATH=$PATH:"$HOME/.local/bin:$HOME/.cargo/bin:/var/lib/flatpak/exports/bin:/.local/share/flatpak/exports/bin:/home/stee/.opencode/bin"
 
 # Interactive shell setup
 if [[ $- == *i* ]]; then
