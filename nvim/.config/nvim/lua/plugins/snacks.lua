@@ -12,12 +12,10 @@ return {
           -- Show hidden/ignored files in the file finder (<leader><leader>)
           files = {
             hidden = true,
-            ignored = true,
           },
           -- Also apply to grep (<leader>/)
           grep = {
             hidden = true,
-            ignored = true,
           },
         },
       },
