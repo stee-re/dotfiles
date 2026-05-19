@@ -17,6 +17,24 @@ return {
           grep = {
             hidden = true,
           },
+          -- Filter LSP symbols to top-level constructs only
+          lsp_symbols = {
+            filter = {
+              kind = {
+                "Class",
+                "Constructor",
+                "Enum",
+                "Field",
+                "Function",
+                "Interface",
+                "Method",
+                "Module",
+                "Namespace",
+                "Property",
+                "Struct",
+              },
+            },
+          },
         },
       },
     },
