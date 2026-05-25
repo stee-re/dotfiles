@@ -78,6 +78,21 @@ import OscdSclDialogs from '@omicronenergy/oscd-scl-dialogs/OscdSclDialogs.js';
 static scopedElements = { 'oscd-scl-dialogs': OscdSclDialogs };
 ```
 
+### Load the scoped registry polyfill exactly once in tests
+
+When `web-test-runner.config.*` uses `@web/dev-server-polyfill` with `scopedCustomElementRegistry: true`, do NOT also import `@webcomponents/scoped-custom-element-registry` in spec files. The scoped registry polyfill is not safe to load twice: scoped registries may contain the expected definitions while rendered scoped children remain plain `HTMLElement`s and never upgrade.
+
+```ts
+// ❌ WRONG when WTR already injects the polyfill
+import '@webcomponents/scoped-custom-element-registry';
+import { fixture } from '@open-wc/testing';
+
+// ✅ CORRECT: let web-test-runner.config.* inject it once
+import { fixture } from '@open-wc/testing';
+```
+
+If child components fail to upgrade in tests, first check for duplicate polyfill loading before changing `scopedElements` registrations.
+
 ## Constructor DOM Traversal Fix
 
 With `ScopedElementsMixin`, child elements are created by Lit's rendering system. Constructors run BEFORE the element is connected to the DOM. `this.closest()`, `this.parentElement`, `this.getRootNode()` return `null` in the constructor.
