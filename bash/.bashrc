@@ -368,7 +368,7 @@ export PATH=$PATH:"$HOME/.local/bin:$HOME/.cargo/bin:/var/lib/flatpak/exports/bi
 if [[ $- == *i* ]]; then
   # Bind Ctrl+f to insert 'zi' followed by a newline
   bind '"\C-f":"zi\n"'
-
+  eval "$(fzf --bash)"
   if [[ "${TERM:-}" != "dumb" ]]; then
     eval "$(starship init bash)"
   fi
