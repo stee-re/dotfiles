@@ -250,3 +250,26 @@ html`${this.hasDataSet
   ? this.renderDataSetItem()
   : nothing}`
 ```
+
+## Test Co-location
+
+When extracting a component or module from a parent, **move the related tests with it**. Tests must live alongside the code they exercise.
+
+- Each component gets its own `.spec.ts` file in the same directory as the component.
+- A parent's spec file should only test the parent's own orchestration logic — NOT the internal behavior of its children.
+- When refactoring code into a new file/component, identify which tests are really testing that extracted logic and move them to a co-located spec.
+
+```
+src/
+  toolbar/
+    sld-toolbar.ts
+    sld-toolbar.spec.ts        ← tests toolbar behavior
+    sld-ied-menu.ts
+    sld-ied-menu.spec.ts       ← tests IED menu behavior
+    sld-ied-importer.ts
+    sld-ied-importer.spec.ts   ← tests importer behavior
+  oscd-editor-sld.ts
+  oscd-editor-sld.spec.ts      ← tests root orchestration only
+```
+
+**Why:** Having a parent's spec file test child component internals makes it impossible to know where tests live. It couples the test suite to an implementation detail (the parent's structure) rather than the component's contract. When someone changes `sld-ied-menu`, they should find its tests in `sld-ied-menu.spec.ts` — not buried in a 1200-line parent spec.

@@ -136,3 +136,8 @@ When fixing a spec file:
 - Wrapping tests in try/catch to swallow errors
 - Skipping flaky tests without investigating root cause
 - Using `aTimeout(0)` as a substitute for proper async waiting
+- Testing child component behavior in the parent's spec file (see `code-structure` skill → "Test Co-location")
+
+## Test Co-location
+
+Tests belong with the code they exercise. When extracting a component or module, move its tests to a co-located `.spec.ts` file in the same directory. A parent's spec should only test orchestration — not child internals. See the `code-structure` skill for full conventions.
