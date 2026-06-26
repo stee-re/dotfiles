@@ -515,7 +515,14 @@ if [[ "${TERM:-}" != "dumb" ]]; then
   eval "$(starship init zsh)"
 fi
 
+# vi keybindings (parity with bash `set -o vi`); set before fzf/plugins so they bind into viins
+bindkey -v
+
 eval "$(zoxide init zsh)"
+
+if command -v fzf &>/dev/null; then
+  eval "$(fzf --zsh)" 2>/dev/null
+fi
 
 _cd_widget() {
   zle -I
@@ -526,9 +533,39 @@ bindkey '^f' _cd_widget
 
 alias lg='lazygit'
 
+y() {
+  local tmp cwd
+  tmp="$(mktemp -t yazi-cwd.XXXXXX)"
+  command yazi "$@" --cwd-file="$tmp"
+  IFS= read -r -d '' cwd <"$tmp"
+  [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd"
+  command rm -f -- "$tmp"
+}
+
 restow() {
   (
     cd "$HOME/dotfiles" || return
     git pull --ff-only && stow --restow */
   )
 }
+
+#######################################################
+# PLUGINS (autosuggestions + syntax highlighting)
+#######################################################
+
+# zsh-autosuggestions: fish-style suggestions from history
+for _p in \
+  "$HOME/.zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh" \
+  /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh \
+  /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh; do
+  [[ -r "$_p" ]] && source "$_p" && break
+done
+
+# zsh-syntax-highlighting: MUST be sourced last
+for _p in \
+  "$HOME/.zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
+  /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
+  /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh; do
+  [[ -r "$_p" ]] && source "$_p" && break
+done
+unset _p
