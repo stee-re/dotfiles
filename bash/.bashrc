@@ -6,6 +6,21 @@ if [ -f /etc/bashrc ]; then
   . /etc/bashrc
 fi
 
+#######################################################
+# Hand off to zsh (login shell is LDAP-locked to bash)
+#######################################################
+# If this is an interactive bash shell and zsh is available, replace this
+# process with zsh. Skipped automatically for non-interactive shells (scripts),
+# when already inside zsh, when zsh is missing, or when NO_AUTO_ZSH=1 is set
+# (escape hatch: `NO_AUTO_ZSH=1 bash` gives you a plain bash session).
+if [ "$iatest" -gt 0 ] \
+  && [ -z "${NO_AUTO_ZSH:-}" ] \
+  && [ -z "${ZSH_VERSION:-}" ] \
+  && command -v zsh >/dev/null 2>&1; then
+  export SHELL="$(command -v zsh)"
+  exec zsh -l
+fi
+
 # Enable bash programmable completion features in interactive shells
 if [ -f /usr/share/bash-completion/bash_completion ]; then
   . /usr/share/bash-completion/bash_completion
