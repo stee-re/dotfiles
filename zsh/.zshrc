@@ -21,6 +21,10 @@ export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_STATE_HOME="$HOME/.local/state"
 export XDG_CACHE_HOME="$HOME/.cache"
 
+export OLLAMA_REQUEST_TIMEOUT=300s      # 5-minute request timeout
+export OLLAMA_KEEP_ALIVE=15m            # Keep model in memory between requests
+export OLLAMA_MAX_LOADED_MODELS=2
+
 stty -ixon
 
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
