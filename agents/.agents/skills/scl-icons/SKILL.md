@@ -71,3 +71,4 @@ Replace `mwc-icon` selectors with `oscd-icon`.
 ## Known Exceptions
 
 - If no SCL icon name exists in `SCL_ICONS`, keep SVG as local constant and render as slotted child of `<oscd-icon>` (slot fallback works for arbitrary SVG content)
+- **Slotted/inline SVG must use `fill="currentColor"` (or `stroke="currentColor"`), never literal colours.** Font ligatures inherit `color` automatically, but a raw `<svg><path .../></svg>` defaults to `fill: black` and silently ignores the button's `--md-fab-icon-color`/on-surface colour — invisible until a dark theme exposes it. Any path-based icon (e.g. SLD `resize`/`move` glyphs) needs explicit `currentColor` on the svg/path to follow the theme.

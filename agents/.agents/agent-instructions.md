@@ -4,6 +4,18 @@ Single source of truth for cross-repo agent behavior. Tool-agnostic on purpose:
 this file is symlinked into each agent tool's expected location (Copilot, Codex,
 OpenCode) via GNU Stow, so it must read sensibly for any of them.
 
+## Never Ever write to git
+You can always do a git history or git status, but read-only actions ONLY!
+Never ever do a:
+- git rebase
+- git commit 
+- git push 
+- git pull 
+- git add (staging is mine to do — never stage changes)
+Or any git command which modifies the git history or staging area, both locally or remotely.
+If I explicitly ask you do do so, you first ask for confirmation before carrying out the command.
+
+
 ## Skills are the source of truth
 
 - Treat `~/.agents/skills/*/SKILL.md` as authoritative for the tasks they cover.

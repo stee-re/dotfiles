@@ -119,6 +119,27 @@ SVG icons slotted into FABs must have `slot="icon"` and should use `stroke="curr
 - `@icon-button-toggle-change` event → `@change` event
 - Icon names go in slotted children, not attributes
 
+## Menu / List Item Colors (mwc-list-item → oscd-menu-item / oscd-list-item)
+
+**FOOTGUN: `--mdc-theme-*` is silently ignored by M3 components.** oscd-ui has zero
+`--mdc-theme-*` references, so leftover mwc colour vars set via `style=` resolve to
+nothing and the element renders default on-surface — colourless, no error. Always
+swap to the M3 component tokens:
+
+| MWC (dead in oscd-ui) | MD3 replacement |
+| --- | --- |
+| `--mdc-theme-text-primary-on-background` | `--md-menu-item-label-text-color` |
+| `--mdc-theme-text-icon-on-background` | `--md-menu-item-leading-icon-color` |
+
+```ts
+// MWC (renders nothing on oscd-menu-item)
+style: '--mdc-theme-text-primary-on-background: #BB1326; --mdc-theme-text-icon-on-background: #BB1326;'
+// MD3
+style: '--md-menu-item-label-text-color: #BB1326; --md-menu-item-leading-icon-color: #BB1326;'
+```
+
+Prefer semantic tokens for cues (e.g. destructive → `var(--md-sys-color-error, …)`).
+
 ## Dialog Migration (mwc-dialog → oscd-dialog)
 
 ```html
@@ -202,7 +223,9 @@ static scopedElements = {
 
 ## Verification
 
+- **MUST: full scan before "done"** — grep the whole tree for `mwc` and `--mdc-`; the migration is not complete until there are **zero** occurrences (imports, tags, or CSS vars). Residual `--mdc-*` vars are inert on M3 components and fail silently.
 - No `@material/mwc-*` imports remain where oscd-ui equivalent exists
+- No residual `--mdc-theme-*` vars (grep `mdc-theme`); they are inert on M3 components
 - UI renders and behaves correctly
 - Event handlers fire as expected
 - Accessibility and keyboard interactions intact

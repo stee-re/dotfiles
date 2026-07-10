@@ -74,6 +74,7 @@ For Lit templates:
 - Dispatch persistent edits with `newEditEventV2` from `@openscd/oscd-api/utils.js`.
 - Use `docVersion` instead of legacy `editCount`.
 - Prefer `@openscd/scl-lib` helpers over copied foundation logic when the helper exists.
+- Read namespaced SCL attributes with `getAttributeNS(ns, localName)`, never bare `getAttribute` — bare `getAttribute` silently returns an unnamespaced or wrong-namespace value and is a common source of subtle bugs. Where namespace misuse is a genuine risk, enforce this in tests with a decoy technique: in fixtures, inject an unnamespaced twin of every namespaced attribute holding a poison value (e.g. a decoy `x="DECOY"` alongside the real `ns:x="3"`). Correct code reading `getAttributeNS(ns, 'x')` still sees `"3"`; buggy code reading bare `getAttribute('x')` now sees `"DECOY"` and fails loudly — a wrong assertion, a `NaN` from number coercion, or a thrown parse error — instead of silently passing on a fixture that merely happened to have no unnamespaced attributes. This turns an invisible namespace mistake into an immediate, self-pointing test failure.
 - If schema constraints or IEC semantics are uncertain, stop and state the uncertainty instead of guessing.
 
 ---
