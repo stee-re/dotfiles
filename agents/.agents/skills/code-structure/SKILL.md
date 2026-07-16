@@ -230,6 +230,29 @@ Sub-renderers are always named `render<What>`:
 - `renderLNodeListItem`
 - `renderContextMenu`
 
+### Spelling
+
+Code **always** uses **American English** spelling — identifiers, type names,
+file and directory names, symbols, and code comments. This holds even when the
+surrounding prose (docs, PR descriptions, reviewer notes) uses British English,
+because American spelling is the software ecosystem norm (`artifact`, `color`,
+`behavior`, `initialize`, `center`).
+
+```ts
+// ✅ CORRECT — American spelling in code
+class SldArtifactContext { ... }   // src/drawing/artifacts/
+const color = '#BB1326';
+function initializeViewer() { ... }
+
+// ❌ WRONG — British spelling in code
+class SldArtefactContext { ... }   // src/drawing/artefacts/
+const colour = '#BB1326';
+function initialiseViewer() { ... }
+```
+
+Prose in Markdown docs may follow the author's preferred variety of English;
+this rule constrains code only.
+
 ### Boolean checks
 
 Prefer explicit comparisons for nullability:
