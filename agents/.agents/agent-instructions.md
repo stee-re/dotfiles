@@ -90,6 +90,15 @@ Assume large SCL files: many IEDs (1000+), deep nesting, frequent edits.
 - Prefer existing local patterns over new abstractions.
 - Respect uncommitted user changes; never revert unrelated work; no destructive
   git commands unless explicitly requested. Ask before ever executing a git command which changes something.
+- WTR is used for both unit tests and VTR tests. Where practical, consider the VTR harness when you need to render to the browser DOM to check or diagnose code.
+
+## Visual regression testing
+
+  - VTR screenshot baselines are CI-owned.
+  - Never update or commit visual baselines locally.
+  - Local visual differences may be inspected diagnostically, but only CI-generated VTR results are
+  authoritative.
+  - Do not treat local VTR differences as release-blocking unless CI reproduces them.
 
 ## This is a living document
 
