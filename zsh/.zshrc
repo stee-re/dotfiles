@@ -217,6 +217,8 @@ alias gitamendpush="git commit -a --amend --no-edit && git forcepush"
 alias npmupdateall="npx npm-check-updates -u"
 alias kssh="kitty +kitten ssh"
 
+alias pwdc='printf "%s" "$PWD" | xclip -selection clipboard && echo "Copied path to clipboard: $PWD"'
+
 #######################################################
 # FUNCTIONS
 #######################################################
@@ -242,6 +244,10 @@ extract() {
       echo "'$archive' is not a valid file!"
     fi
   done
+}
+
+last-logins(){
+  sudo journalctl --since today | grep 'gdm-password'
 }
 
 ftext() {
@@ -569,3 +575,12 @@ for _p in \
   [[ -r "$_p" ]] && source "$_p" && break
 done
 unset _p
+
+autoload -Uz add-zsh-hook
+
+_update_terminal_title() {
+  print -Pn '\e]0;%n@%m: %~\a'
+}
+
+add-zsh-hook precmd _update_terminal_title
+
