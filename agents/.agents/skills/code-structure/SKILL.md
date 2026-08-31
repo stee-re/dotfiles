@@ -1,298 +1,72 @@
 ---
 name: code-structure
-description: Enforce project structure conventions for scoped web components. Covers class member ordering, CSS ordering, decorator formatting, naming, imports, exports, and template patterns.
+description: Read before writing or reviewing a `.ts` scoped web component — member order, naming, imports, CSS order, bindings, spec placement.
 ---
 
 # Code Structure & Conventions
 
-This skill defines the structural conventions for all migrated plugin code. Load when reviewing, writing, or restructuring component files.
-
-## File Naming
-
-- File name is always the **kebab-case** of the class name (which is always **CamelCase**).
-- `OscdEditorPublisher` → `oscd-editor-publisher.ts`
-- `GseControlEditor` → `gse-control-editor.ts`
-
-## Import Ordering
-
-Group imports in this order, separated by a blank line between groups:
-
-1. **External packages** (lit, @open-wc, @omicronenergy, @openscd)
-2. **Relative imports** (./foundation, ../editors)
-3. **Type-only imports** (`import type { ... }`)
-
-```ts
-import { html, LitElement } from 'lit';
-import { property, query } from 'lit/decorators.js';
-import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
-import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
-
-import { compareNames } from './foundation/scl.js';
-import { GseControlEditor } from './editors/gsecontrol/gse-control-editor.js';
-
-import type { EditV2 } from '@openscd/oscd-api';
-import type { ActionItem } from '@omicronenergy/oscd-ui/action-list/OscdActionList.js';
-```
-
-## Export Style
-
-- **Single default export** per component file (the class).
-- **Named exports** for types, interfaces, and utility functions.
-- Entry point file has the default export class; child utilities have named exports only.
-
-## Decorator Formatting
-
-Decorators ALWAYS on their own line above the declaration:
-
-```ts
-// ✅ CORRECT
-@property({ attribute: false })
-doc!: XMLDocument;
-
-@query('oscd-scl-dialogs')
-private sclDialogs!: OscdSclDialogs;
-
-@state()
-private selectedControl: Element | null = null;
-
-// ❌ WRONG
-@property doc!: XMLDocument;
-@query('oscd-scl-dialogs') private sclDialogs!: OscdSclDialogs;
-```
-
-## Class Member Ordering
-
-Within a scoped web component class, members MUST appear in this order:
-
-```ts
-export default class MyComponent extends ScopedElementsMixin(LitElement) {
-  // 1. Static scoped elements
-  static scopedElements = { ... };
-
-  // 2. @property declarations (public reactive properties)
-  @property({ attribute: false })
-  doc!: XMLDocument;
-
-  @property({ attribute: false })
-  docVersion?: unknown;
-
-  // 3. @state declarations (private reactive state)
-  @state()
-  private selectedItem: Element | null = null;
-
-  // 4. @query declarations
-  @query('oscd-scl-dialogs')
-  private sclDialogs!: OscdSclDialogs;
-
-  // 5. @queryAll declarations
-  @queryAll('.content > oscd-scl-checkbox')
-  private checkboxes!: NodeListOf<HTMLElement>;
-
-  // 6. Constructor (if needed)
-  constructor() { ... }
-
-  // 7. Lifecycle methods (in lifecycle order)
-  override connectedCallback(): void { ... }
-  override disconnectedCallback(): void { ... }
-  override willUpdate(changed: PropertyValues): void { ... }
-  override firstUpdated(): void { ... }
-  override updated(changed: PropertyValues): void { ... }
-
-  // 8. Event handlers (always prefixed "handle")
-  private handleEditDialogEvent = (event: Event) => { ... };
-  private handleControlSelect(event: CustomEvent): void { ... }
-  private handleMenuAction(action: string): void { ... }
-
-  // 9. Private methods (business logic, helpers)
-  private getAssociatedDataSet(control: Element): Element | null { ... }
-  private isDataSetSingleUse(dataSet: Element): boolean { ... }
-
-  // 10. Sub-renderers (prefixed "render" + specific part)
-  private renderControlItem(control: Element): TemplateResult { ... }
-  private renderLNodeListItem(ln: Element): TemplateResult { ... }
-  private renderContextMenu(): TemplateResult { ... }
-
-  // 11. Main render method
-  render(): TemplateResult { ... }
-
-  // 12. Static styles
-  static styles = css`...`;
-}
-```
-
-## Control Flow
-
-Never use one-liner if statements. The `if` line always ends with `{`:
-
-```ts
-// ✅ CORRECT
-if (!element) {
-  return null;
-}
-
-if (condition) {
-  doThing();
-}
-
-// ❌ WRONG
-if (!element) return null;
-if (condition) doThing();
-```
-
-## CSS Ordering Within `static styles`
-
-1. **`*` selector** — CSS variable overrides and variable declarations
-2. **Host/container styles** — `:host`, `.container`, top-level layout
-3. **Top-to-bottom UI order** — styles for elements the user sees first come first
-4. **Specific/nested styles** — more granular rules come later, roughly in order of visual appearance
-
-```ts
-static styles = css`
-  * {
-    --md-sys-color-primary: var(--oscd-primary);
-    --item-height: 48px;
-  }
-
-  :host {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-
-  .header { ... }
-  .content { ... }
-  .content .list-item { ... }
-  .content .list-item .detail { ... }
-  .footer { ... }
-`;
-```
-
-## Template Binding Style
-
-- Prefer `.property=${value}` (property binding) over `attribute="${value}"` (attribute binding)
-- Use `@event` in templates, not `addEventListener` in lifecycle methods (unless the listener target is outside the template)
-
-```ts
-// ✅ Property binding
-html`<child-component .doc=${this.doc} .docVersion=${this.docVersion}></child-component>`
-
-// ❌ Attribute binding for complex values
-html`<child-component doc="${this.doc}" editCount="${this.editCount}"></child-component>`
-
-// ✅ Event binding in template
-html`<oscd-icon-button @click=${this.handleEdit}><oscd-icon>edit</oscd-icon></oscd-icon-button>`
-
-// ❌ addEventListener in connectedCallback for template elements
-connectedCallback() {
-  this.shadowRoot.querySelector('oscd-icon-button')?.addEventListener('click', ...);
-}
-```
-
-## Event Dispatch Pattern
-
-- Always use `this.dispatchEvent(new CustomEvent(...))` for state changes that cross component boundaries.
-- Never use direct DOM manipulation for propagating state.
-- Custom events should be `{ bubbles: true, composed: true }` unless there's a specific reason not to.
-
-## Type Assertions
-
-- Prefer type guards or explicit narrowing over `as` casts.
-- Use `as` only when the type system cannot express the narrowing and you are certain of the type.
-
-```ts
-// ✅ Prefer narrowing
-if (isInsert(edit)) {
-  const parent = edit.parent;
-}
-
-// ✅ Type guard
-function isElement(node: Node): node is Element {
-  return node.nodeType === Node.ELEMENT_NODE;
-}
-
-// ⚠️ Use 'as' only when unavoidable
-const detail = (event as CustomEvent).detail;
-```
-
-## Additional Patterns
-
-### Handler naming
-
-Event handlers are always named `handle<What>`:
-- `handleEditDialogEvent`
-- `handleControlSelect`
-- `handleFilterChange`
-
-### Sub-renderer naming
-
-Sub-renderers are always named `render<What>`:
-- `renderControlItem`
-- `renderLNodeListItem`
-- `renderContextMenu`
-
-### Spelling
-
-Code **always** uses **American English** spelling — identifiers, type names,
-file and directory names, symbols, and code comments. This holds even when the
-surrounding prose (docs, PR descriptions, reviewer notes) uses British English,
-because American spelling is the software ecosystem norm (`artifact`, `color`,
-`behavior`, `initialize`, `center`).
-
-```ts
-// ✅ CORRECT — American spelling in code
-class SldArtifactContext { ... }   // src/drawing/artifacts/
-const color = '#BB1326';
-function initializeViewer() { ... }
-
-// ❌ WRONG — British spelling in code
-class SldArtefactContext { ... }   // src/drawing/artefacts/
-const colour = '#BB1326';
-function initialiseViewer() { ... }
-```
-
-Prose in Markdown docs may follow the author's preferred variety of English;
-this rule constrains code only.
-
-### Boolean checks
-
-Prefer explicit comparisons for nullability:
-```ts
-// ✅ Explicit
-if (element !== null) { ... }
-if (items.length > 0) { ... }
-
-// ⚠️ Acceptable for booleans
-if (isValid) { ... }
-```
-
-### Template conditionals
-
-Use ternary with `nothing` for conditional rendering, not `if` statements inside templates:
-```ts
-html`${this.hasDataSet
-  ? this.renderDataSetItem()
-  : nothing}`
-```
-
-## Test Co-location
-
-When extracting a component or module from a parent, **move the related tests with it**. Tests must live alongside the code they exercise.
-
-- Each component gets its own `.spec.ts` file in the same directory as the component.
-- A parent's spec file should only test the parent's own orchestration logic — NOT the internal behavior of its children.
-- When refactoring code into a new file/component, identify which tests are really testing that extracted logic and move them to a co-located spec.
-
-```
-src/
-  toolbar/
-    sld-toolbar.ts
-    sld-toolbar.spec.ts        ← tests toolbar behavior
-    sld-ied-menu.ts
-    sld-ied-menu.spec.ts       ← tests IED menu behavior
-    sld-ied-importer.ts
-    sld-ied-importer.spec.ts   ← tests importer behavior
-  oscd-editor-sld.ts
-  oscd-editor-sld.spec.ts      ← tests root orchestration only
-```
-
-**Why:** Having a parent's spec file test child component internals makes it impossible to know where tests live. It couples the test suite to an implementation detail (the parent's structure) rather than the component's contract. When someone changes `sld-ied-menu`, they should find its tests in `sld-ied-menu.spec.ts` — not buried in a 1200-line parent spec.
+**Use when** authoring or reviewing a component/module file in migrated plugin
+code; placing a member, style rule, or `.spec.ts`.
+
+**Don't use for** — `scoped-elements` (mixin setup, registration),
+`test-hardening` (test reliability), `oscd-ui`/`oscd-api` (which components and
+APIs to call). This skill governs file shape.
+
+## Rules
+
+- **File name** = kebab-case of the CamelCase class name.
+- **Import groups**, blank-line separated: external, relative, type-only.
+- **Exports**: one default export per component file (the class); named for
+  types, interfaces, utilities — child utilities export named only.
+- **Decorators** on their own line above the declaration.
+- **Control flow**: no one-liner `if`; the `if` line always ends with `{`.
+- **Bindings**: `.property=${value}` over `attribute="${value}"`; `@event` in
+  templates, not `addEventListener` (unless the target is outside it).
+- **Event dispatch**: cross-component state changes use
+  `this.dispatchEvent(new CustomEvent(...))`, never DOM manipulation;
+  `{ bubbles: true, composed: true }` absent a specific reason.
+- **Type assertions**: type guards or narrowing over `as`.
+- **Naming**: handlers `handle<What>`; sub-renderers `render<What>`.
+- **Spelling**: code always uses American English — identifiers, types, file
+  and directory names, symbols, comments — even when prose around it is
+  British. Markdown prose exempt.
+- **Boolean checks**: explicit for nullability (`element !== null`,
+  `items.length > 0`); bare `if (isValid)` fine for booleans.
+- **Template conditionals**: ternary with `nothing`, never `if` in templates.
+- **Test co-location**: each component owns a sibling `.spec.ts`; a parent spec
+  tests its own orchestration only, never child internals; extracted code takes
+  its tests.
+
+### Class member order
+
+1. `static scopedElements`
+2. `@property` (public reactive)
+3. `@state` (private reactive)
+4. `@query`
+5. `@queryAll`
+6. Constructor
+7. Lifecycle methods, in lifecycle order
+8. Handlers (`handle*`)
+9. Private methods (logic, helpers)
+10. Sub-renderers (`render*`)
+11. `render()`
+12. `static styles`
+
+### CSS order in `static styles`
+
+1. `*` — variable overrides and declarations
+2. Host/container — `:host`, `.container`, layout
+3. Top-to-bottom UI order — what the user sees first
+4. Specific/nested rules, roughly in visual order
+
+## Verify
+
+- `npm run lint`, `npx tsc --noEmit`, `npm test` pass.
+- Ordering, naming, spelling are not lint-enforced — re-read the changed file
+  against both lists; confirm each component has a sibling spec.
+
+## Reference
+
+| File | Read when |
+|---|---|
+| [`reference/examples.md`](reference/examples.md) | A rule is disputed: correct/wrong examples, annotated member-order block, rationale. |

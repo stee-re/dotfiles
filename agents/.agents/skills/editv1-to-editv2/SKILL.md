@@ -1,60 +1,49 @@
 ---
 name: editv1-to-editv2
-description: Convert deprecated Create/Delete/Move/Update/ComplexAction editor actions to EditV2 types and newEditEventV2 dispatch. Load during Step 3 migration.
+description: Step 3 conversion of Create/Delete/Move/Update/ComplexAction and newActionEvent to EditV2 Insert/Remove/SetAttributes and newEditEventV2 from @openscd/oscd-api.
 ---
 
-# Recipe: Convert Deprecated Editor Actions to EditV2
+# Convert Deprecated Editor Actions to EditV2
 
-## Type Mapping
+**Use when**
+- A plugin still imports deprecated action types or `newActionEvent` from `@omicronenergy/oscd-background-editor-action`.
+- Step 3 of a migration: removing the editor-action bridge and dispatching `newEditEventV2`.
 
-| Deprecated type | EditV2 equivalent | Notes |
-|---|---|---|
-| `Create` | `Insert` | `Create.new.element` → `Insert.node`, `Create.new.parent` → `Insert.parent` |
-| `Delete` | `Remove` | `Delete.old.element` → `Remove.node` |
-| `Update` (attributes) | `SetAttributes` | `{ element, attributes, attributesNS }` |
-| `Move` | `Remove` + `Insert` | Remove from old parent, insert into new parent at reference |
-| `ComplexAction` | `EditV2[]` | Array of edits replaces `ComplexAction.actions` |
-| `newActionEvent(action)` | `newEditEventV2(edit)` | Import from `@openscd/oscd-api/utils.js` |
+**Don't use for** — Step 2, where deprecated actions are still correct: `$deprecated-editor-actions` covers sourcing those types and the background bridge.
 
-## Import Changes
+**Escalate to** — `iec-61850` if a converted `Insert` reference/parent choice or `SetAttributes` payload affects SCL element ordering, required attributes, or namespaces.
 
-```ts
-// Before
-import type { ComplexAction, Create, Delete } from '@omicronenergy/oscd-background-editor-action';
-import { newActionEvent } from '@omicronenergy/oscd-background-editor-action';
+## Problem
 
-// After
-import type { Insert, Remove, SetAttributes, EditV2 } from '@openscd/oscd-api';
-import { newEditEventV2 } from '@openscd/oscd-api/utils.js';
-```
+Deprecated V1 editor actions must become `EditV2` operations dispatched with `newEditEventV2`, without changing document behavior.
 
-## createElement Usage
+## Procedure
 
-When building `Insert` nodes, legacy code uses `createElement(doc, tagName, attributes)`. Use `doc.createElementNS(SCL_NAMESPACE, tagName)` and set attributes directly, or use `createElement` from `@openscd/scl-lib/dist/foundation/utils.js`.
+1. Map each action using `reference/type-mapping.md`.
+2. Swap imports to `@openscd/oscd-api` (see `reference/type-mapping.md`).
+3. For `Insert` nodes, replace legacy `createElement(doc, tagName, attributes)` with `doc.createElementNS(SCL_NAMESPACE, tagName)` plus direct attribute sets, or `createElement` from `@openscd/scl-lib/dist/foundation/utils.js`.
+4. Update parent-child edit propagation paths; replace `editCount`-driven refresh with `docVersion` response.
+5. Update tests to verify resulting document behavior.
+6. Remove `@omicronenergy/oscd-background-editor-action` from `package.json` and the background plugin from `demo/plugins.js`.
 
-## Required Edits
+## Pitfalls
 
-- Map each deprecated action to the equivalent EditV2 operation
-- Replace event dispatch with `newEditEventV2`
-- Update parent-child edit propagation paths
-- Replace `editCount`-driven refresh with `docVersion` response
-- Update tests to verify resulting document behavior
+- Half-converted edit paths where some changes still use deprecated actions.
+- Converting the event type but silently changing business logic.
+- Preserving deprecated helper structures without proving they are still needed.
+- Updating tests to match implementation details instead of document behavior.
+- Temporary local DOM updates that never persist into the SCL document are NOT `EditV2`; document the distinction if both patterns exist.
 
-## Anti-Patterns
-
-- Leaving half-converted edit paths where some changes still use deprecated actions
-- Converting the event type but silently changing business logic
-- Preserving deprecated helper structures without proving they are still needed
-- Updating tests to match implementation details instead of document behavior
-
-## Verification
+## Verify
 
 - No deprecated editor action imports remain
 - Persistent document edits flow through `newEditEventV2`
 - Behavior remains identical to legacy
-- `@omicronenergy/oscd-background-editor-action` removed from package.json
-- Background plugin removed from demo/plugins.js
+- `@omicronenergy/oscd-background-editor-action` removed from `package.json`
+- Background plugin removed from `demo/plugins.js`
 
-## Known Exceptions
+## Reference
 
-- Temporary local DOM updates that do not persist into the SCL document are NOT `EditV2`; document the distinction if both patterns exist.
+| File | Read when |
+|---|---|
+| `reference/type-mapping.md` | Mapping a deprecated action to its EditV2 form, or rewriting imports |

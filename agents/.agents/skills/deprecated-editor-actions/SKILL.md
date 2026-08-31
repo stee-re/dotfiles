@@ -1,95 +1,47 @@
 ---
 name: deprecated-editor-actions
-description: Shared background plugin providing deprecated Create/Delete/Move/Update/ComplexAction types and editor-action event bridge for Step 2. Temporary until Step 3 converts to EditV2.
+description: Source deprecated Create/Delete/Move/Update/ComplexAction types and newActionEvent from @omicronenergy/oscd-background-editor-action in Step 2, not @openscd/core or local copies.
 ---
 
-# Recipe: Deprecated Editor Actions via Shared Background Plugin
+# Deprecated Editor Actions via Shared Background Plugin
 
-## Architecture
+**Use when**
+- Step 2 code needs `Create`, `Delete`, `Move`, `Replace`, `Update`, `SimpleAction`, `ComplexAction`, `EditorAction`, or `newActionEvent`.
+- Those symbols come from `@openscd/core` or a local `deprecated-editor-actions.ts`.
+- Wiring the demo so `'editor-action'` reaches the document.
 
-`@omicronenergy/oscd-background-editor-action` provides:
+**Don't use for** — Step 3 conversion to EditV2: `$editv1-to-editv2` covers the type mapping, `newEditEventV2` dispatch, and removing this package.
 
-1. **Exported deprecated types and `newActionEvent`** — plugins import these directly
-2. **Background plugin element** — listens on `document` for `'editor-action'`, converts to EditV2, dispatches `newEditEventV2`
+**Escalate to** — `iec-61850` if an action's parent/reference placement or attributes affect SCL element ordering, required attributes, or namespaces.
 
-## Exported Symbols
+## Problem
 
-### Types (import type)
+`@openscd/core` is not an acceptable plugin dependency, and per-plugin copies of the deprecated action types drift. `@omicronenergy/oscd-background-editor-action` exports those types plus a background element that listens on `document` for `'editor-action'`, converts it to EditV2, and dispatches `newEditEventV2`.
 
-| Symbol | Shape |
-|---|---|
-| `Create` | `{ new: { parent: Node; element: Node; reference?: Node \| null }; derived?: boolean }` |
-| `Delete` | `{ old: { parent: Node; element: Node; reference?: Node \| null }; derived?: boolean }` |
-| `Move` | `{ old: { parent: Node; element: Node; reference?: Node \| null }; new: { parent: Node; reference?: Node \| null } }` |
-| `Replace` | `{ old: { element: Element }; new: { element: Element } }` |
-| `Update` | `{ element: Element; oldAttributes: Record<string, string \| null>; newAttributes: Record<string, string \| null> }` |
-| `SimpleAction` | `Create \| Delete \| Move \| Replace \| Update` |
-| `ComplexAction` | `{ actions: SimpleAction[]; title: string; derived?: boolean }` |
-| `EditorAction` | `SimpleAction \| ComplexAction` |
+## Procedure
 
-### Runtime
+1. Depend on `@omicronenergy/oscd-background-editor-action` and import from it directly — types via `import type`, `newActionEvent` as a value (see `reference/api.md`).
+2. Do NOT create `src/foundation/deprecated-editor-actions.ts`.
+3. Register `OscdBackgroundEditorAction` in the `background` array of `demo/plugins.js` — snippet in `reference/api.md`.
+4. Step 3 removal: drop the package from `package.json` and the background plugin from `demo/plugins.js`; add `@openscd/oscd-api` as a direct dependency.
 
-| Symbol | Purpose |
-|---|---|
-| `newActionEvent` | Dispatches `'editor-action'` CustomEvent `{ bubbles: true, composed: true }` |
+## Pitfalls
 
-### Default export
+- Adding `@openscd/core`, or `@openscd/oscd-api` during Step 2 (use the background plugin).
+- Local deprecated type definitions, or per-plugin conversion logic.
+- Using `any` as a placeholder for these types.
+- Converting to EditV2 during Step 2 (that is Step 3).
 
-| Symbol | Purpose |
-|---|---|
-| `OscdBackgroundEditorAction` | Background plugin element (register in demo) |
-
-## Usage in Migrated Plugins
-
-```ts
-import type { ComplexAction, Delete } from '@omicronenergy/oscd-background-editor-action';
-import { newActionEvent } from '@omicronenergy/oscd-background-editor-action';
-```
-
-Do NOT create local `src/foundation/deprecated-editor-actions.ts`.
-
-## Demo Setup
-
-```js
-// demo/plugins.js
-import OscdBackgroundEditorAction from '@omicronenergy/oscd-background-editor-action';
-registry.define('oscd-background-editor-action', OscdBackgroundEditorAction);
-
-// Add to background array:
-{ name: 'Legacy Editor Action Bridge', icon: 'none', requireDoc: true, tagName: 'oscd-background-editor-action' }
-```
-
-## Event Flow
-
-```
-Plugin dispatches 'editor-action' (deprecated)
-  → document listener (oscd-background-editor-action)
-  → Converts EditorAction → V1 Edit → V2 EditV2 (via convertEdit)
-  → Dispatches newEditEventV2(editV2)
-  → oscd-shell 'oscd-edit-v2' handler
-  → XMLEditor.commit(editV2) → docVersion += 1 → re-render
-```
-
-## Lifecycle
-
-**Temporary for Step 2 only.** Removed in Step 3 when all code converts to EditV2:
-- Remove `@omicronenergy/oscd-background-editor-action` from package.json
-- Remove background plugin from demo/plugins.js
-- Add `@openscd/oscd-api` as direct dependency
-
-## Verification
+## Verify
 
 - No `@openscd/core` imports remain
 - No local `deprecated-editor-actions.ts` exists
-- Background plugin registered in demo/plugins.js
-- Edit events dispatch as `'editor-action'` and bridge applies changes
+- Background plugin registered in `demo/plugins.js`
+- Edit events dispatch as `'editor-action'`; bridge applies changes
 - Subscribe/unsubscribe operations update document and UI
 
-## Anti-Patterns
+## Reference
 
-- Adding `@openscd/core` as npm dependency
-- Adding `@openscd/oscd-api` to plugin during Step 2 (use background plugin)
-- Creating local deprecated type definitions
-- Embedding conversion logic in each plugin
-- Using `any` as placeholder for these types
-- Converting to EditV2 during Step 2 (that's Step 3)
+| File | Read when |
+|---|---|
+| `reference/api.md` | Exact exported type shapes, event flow, or demo registration snippet |

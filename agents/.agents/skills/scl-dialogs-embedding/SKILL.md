@@ -1,92 +1,63 @@
 ---
 name: scl-dialogs-embedding
-description: Embed oscd-scl-dialogs in plugin root for self-contained dialog functionality. Replace legacy wizard openings with oscd-scl-dialogs where supported.
+description: Use when a plugin opens legacy SCL wizards or dispatches oscd-scl-dialogs-edit events that need a plugin-local <oscd-scl-dialogs> host.
 ---
 
-# Recipe: Embed oscd-scl-dialogs & Replace Legacy Wizards
+# Embed oscd-scl-dialogs & Replace Legacy Wizards
 
-## Part 1: Replace Legacy Wizard Openings (Step 4)
+**Use when**
+- Code opens a legacy wizard or wizard-like SCL editing dialog (Step 4).
+- Plugin dispatches `'oscd-scl-dialogs-edit'` with no host-level handler (Step 6).
 
-### When to use
-- Code opens legacy wizard or wizard-like SCL editing dialog
-- `oscd-scl-dialogs` supports the target element type
+**Don't use for** — generic UI component swaps (`mwc-to-oscd-ui`), edit-action conversion (`editv1-to-editv2`), or flaky dialog tests (`test-hardening`).
 
-### Procedure
-1. Identify the exact legacy wizard target element type
-2. Verify support against oscd-scl-dialogs' supported tag matrix
-3. Replace only if behavior matches; keep unsupported cases local
+**Escalate to** — `iec-61850` if deciding whether a dialog's emitted edit is schema-valid for the target element, since these dialogs produce SCL edits.
 
-### Supported element types (verified)
-- GSEControl, SampledValueControl, ReportControl
-- DataSet, GSE, SMV, SmvOpts
+## Problem
 
-## Part 2: Embed in Plugin Root (Step 6)
+Plugins dispatch `'oscd-scl-dialogs-edit'` events that bubble to a host-level handler. Without host infrastructure the edit button silently fails.
 
-### Problem
-Plugins dispatch `'oscd-scl-dialogs-edit'` events that bubble to a host-level handler. Without host infrastructure, the edit button silently fails.
+## Procedure
 
-### Required Edits
+1. Identify the legacy wizard's target element type and check the supported tag matrix: GSEControl, SampledValueControl, ReportControl, DataSet, GSE, SMV, SmvOpts. Replace only if behavior matches; keep unsupported cases local.
+2. Import via the subpath export — the bare specifier `@omicronenergy/oscd-scl-dialogs` resolves to `foundation.js` (types only, no default export):
 
-1. **Import** using the subpath export (NOT bare specifier):
 ```typescript
 import OscdSclDialogs from '@omicronenergy/oscd-scl-dialogs/OscdSclDialogs.js';
 ```
-The bare specifier `@omicronenergy/oscd-scl-dialogs` resolves to `foundation.js` (types only, no default export).
 
-2. **Register synchronously** in scopedElements:
-```typescript
-static scopedElements = {
-  'oscd-scl-dialogs': OscdSclDialogs,
-};
-```
-Do NOT use lazy/async registration.
+3. Register synchronously, never lazily/asynchronously:
 
-3. **Render** in template:
 ```typescript
-render() {
-  return html`
-    <div class="container"><!-- children --></div>
-    <oscd-scl-dialogs></oscd-scl-dialogs>
-  `;
-}
+static scopedElements = { 'oscd-scl-dialogs': OscdSclDialogs };
 ```
 
-4. **Add @query reference:**
-```typescript
-@query('oscd-scl-dialogs')
-private sclDialogs!: OscdSclDialogs;
-```
+4. Render `<oscd-scl-dialogs></oscd-scl-dialogs>` as a sibling of the container div, and add `@query('oscd-scl-dialogs') private sclDialogs!: OscdSclDialogs;`.
+5. Intercept the event at the plugin root:
 
-5. **Intercept events** (stopPropagation prevents escape to host):
 ```typescript
 connectedCallback() {
   super.connectedCallback();
   this.addEventListener('oscd-scl-dialogs-edit', this.handleEditDialogEvent);
 }
-
 disconnectedCallback() {
   this.removeEventListener('oscd-scl-dialogs-edit', this.handleEditDialogEvent);
   super.disconnectedCallback();
 }
-
 private handleEditDialogEvent = (event: Event) => {
   event.stopPropagation();
-  const detail = (event as CustomEvent).detail;
-  this.sclDialogs.edit(detail);
+  this.sclDialogs.edit((event as CustomEvent).detail);
 };
 ```
 
-### Child components need NO changes
-They continue dispatching `newEditDialogEditEvent(element)` — the plugin root catches it.
+## Pitfalls
 
-## Verification
+- Child components need NO changes; they keep dispatching `newEditDialogEditEvent(element)`.
+- If the host also renders `<oscd-scl-dialogs>` globally, `stopPropagation()` prevents double handling.
 
-- Dialog opens when edit action triggered
-- `'oscd-scl-dialogs-edit'` event does NOT escape plugin root shadow boundary
-- Dialog fields render correctly and produce valid EditV2 on save
-- Plugin works without host-level `<oscd-scl-dialogs>`
+## Verify
 
-## Known Exceptions
-
-- If host also renders `<oscd-scl-dialogs>` globally, `stopPropagation()` prevents double handling
-- Unsupported element types must stay as local implementations
+- Dialog opens when an edit action is triggered.
+- `'oscd-scl-dialogs-edit'` does not escape the plugin root shadow boundary.
+- Dialog fields render and produce valid EditV2 on save.
+- Plugin works without a host-level `<oscd-scl-dialogs>`.

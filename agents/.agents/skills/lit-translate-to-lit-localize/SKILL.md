@@ -1,76 +1,49 @@
 ---
 name: lit-translate-to-lit-localize
-description: Replace lit-translate runtime key lookup with lit-localize msg() using resolved English source strings. MUST be done in Step 2 initial migration.
+description: Use when code imports get() from lit-translate, or renders raw translation keys like subscription.none; replaces it with @lit/localize msg().
 ---
 
-# Recipe: Replace lit-translate With lit-localize msg
+# Replace lit-translate With lit-localize msg()
 
-## Timing
+**Use when**
+- `import { get } from 'lit-translate'`
+- `get('some.translation.key')` or `get('some.key', { ...params })`
+- MUST be done in Step 2 of initial migration — otherwise the plugin renders raw keys.
 
-**MUST be done in Step 2** — without this, the plugin renders raw translation keys instead of English text because the standalone runtime has no host to initialize `lit-translate`.
+**Don't use for** — UI component swaps (`mwc-to-oscd-ui`), scoped registration (`scoped-elements`), or code layout/naming conventions (`code-structure`).
 
 ## Problem
 
-Legacy plugins use `get('translation.key')` from `lit-translate`. The host application initialized translations globally — plugins never called `registerTranslateConfig()`. In standalone form, `get()` returns raw keys.
-
-## Detection
-
-- `import { get } from 'lit-translate'`
-- `get('some.translation.key')`
-- `get('some.translation.key', { ...params })`
-
-## Replacement
-
-```ts
-// Before
-import { get } from 'lit-translate';
-html`${get('subscription.none')}`
-
-// After
-import { msg } from '@lit/localize';
-html`${msg('None')}`
-```
-
-`msg()` works without initialization — for the source locale (English), it returns its argument as-is.
+Legacy plugins call `get('translation.key')`. The host application initialized translations globally — plugins never called `registerTranslateConfig()`. The standalone runtime has no host, so `get()` returns raw keys.
 
 ## Procedure
 
-1. Replace `import { get } from 'lit-translate'` with `import { msg } from '@lit/localize'`
-2. Look up each key in `./legacy/compas-open-scd/packages/openscd/src/translations/en.ts`
-3. Replace `get('key')` with `msg('Resolved English string')`
-4. For dynamic keys, create a typed lookup object:
+1. Replace `import { get } from 'lit-translate'` with `import { msg } from '@lit/localize'`. `msg()` needs no initialization — for the source locale (English) it returns its argument as-is.
+2. Look up each key in `./legacy/compas-open-scd/packages/openscd/src/translations/en.ts`.
+3. Replace `get('subscription.none')` with `msg('None')`.
+4. For dynamic keys, build a typed lookup instead of concatenating:
 
 ```ts
-// Before
-get(`subscription.${this.controlTag}.controlBlockList.title`)
-
-// After
+// Before: get(`subscription.${this.controlTag}.controlBlockList.title`)
 const controlBlockListTitle: Record<string, string> = {
   GSEControl: 'GOOSE Messages',
   SampledValueControl: 'Sampled Value Messages',
 };
-${controlBlockListTitle[this.controlTag]}
+html`${controlBlockListTitle[this.controlTag]}`;
 ```
 
-5. Remove `lit-translate` from package.json
-6. Add `@lit/localize` to package.json
+5. Remove `lit-translate` from package.json; add `@lit/localize`.
 
-## Anti-Patterns
+## Pitfalls
 
-- Keeping `lit-translate` in a standalone plugin
-- Leaving unresolved translation keys
-- Rewriting English strings manually when they exist in `en.ts`
-- Converting parameterized translations into string concatenation
+- Keeping `lit-translate` in a standalone plugin.
+- Leaving unresolved keys, or rewriting English strings by hand when `en.ts` has them.
+- Converting parameterized translations into string concatenation.
+- Deeply nested keys need careful resolution. If a key cannot be resolved, document it and stop — do not guess.
 
-## Verification
+## Verify
 
-- No `lit-translate` imports remain
-- `@lit/localize` imported where needed
-- Each message matches the English source string from `en.ts`
-- Parameterized messages render correct dynamic values
-- Labels, headings, and empty states show English text (not raw keys)
-
-## Known Exceptions
-
-- Deeply nested keys need careful resolution from `en.ts`
-- If a key cannot be resolved, document it and stop — do not guess
+- No `lit-translate` imports remain; `@lit/localize` imported where needed.
+- Each message matches the English source string in `en.ts`.
+- Parameterized messages render correct dynamic values.
+- Labels, headings, and empty states show English text, not raw keys.

@@ -1,107 +1,60 @@
-# Agent Instructions (shared)
+# Agent Instructions
 
-Single source of truth for cross-repo agent behavior. Tool-agnostic on purpose:
-this file is symlinked into each agent tool's expected location (Copilot, Codex,
-OpenCode) via GNU Stow, so it must read sensibly for any of them.
+Cross-tool agent behaviour. Symlinked into Copilot, Codex and OpenCode via GNU
+Stow, so it must read sensibly for any of them.
 
-## Never Ever write to git
-You can always do a git history or git status, but read-only actions ONLY!
-Never ever do a:
-- git rebase
-- git commit 
-- git push 
-- git pull 
-- git add (staging is mine to do — never stage changes)
-Or any git command which modifies the git history or staging area, both locally or remotely.
-If I explicitly ask you do do so, you first ask for confirmation before carrying out the command.
+This file is **always in context**. Keep it universal and short — anything
+domain-, stack- or repo-specific belongs in a skill.
 
+## Git is read-only
+
+`git status`, `log`, `diff`, `show` are always fine. Never run a command that
+writes to history, the staging area, or a remote — including `add`, `commit`,
+`push`, `pull`, `rebase`, `reset`, `stash`.
+
+Staging is mine. If a task seems to need a writing command, ask first and wait
+for explicit confirmation.
 
 ## Skills are the source of truth
 
-- Treat `~/.agents/skills/*/SKILL.md` as authoritative for the tasks they cover.
-  When a task matches a skill's scope, load and follow that skill before acting,
-  and prefer its guidance over general defaults.
-- `~/.agents/agents/general-dev.md` holds baseline development defaults (stack,
-  component conventions, verification). Use it as the default playbook; let a
-  matching SKILL.md override it where they differ.
+`~/.agents/skills/*/SKILL.md` is authoritative for the tasks it covers. When a
+task matches a skill's scope, load it before acting and prefer it over general
+defaults. Each skill's `description` states its trigger — route on that.
 
-## Shared memory: the repo worklog
+Skills are progressively disclosed: read `SKILL.md` first, and open its
+`reference/*.md` files only when you need that specific detail.
 
-- On entering a repository, look for a worklog / workbook markdown at the repo
-  root (e.g. `REFACTORING.md`, or a file the repo designates) and treat it as
-  **our shared, version-controlled memory** — read it before starting work.
-- Keep it in sync as the codebase changes: record decisions, completed work, and
-  the current plan there rather than in any tool-private memory. A reviewable
-  file in version control beats hidden state.
-- If the worklog and the code disagree, the code is typically the truth — highlight the mis-match with the user with the aim of reconciling it.
+## The repo worklog is our shared memory
 
-## Domain law — IEC 61850 / SCL
+On entering a repository, look for a worklog at the root (`REFACTORING.md`, or
+whatever the repo designates) and read it before starting.
 
-Domain correctness overrides fluency. **Do not fabricate domain certainty.**
-
-- SCL must be schema-valid: correct element ordering, required attributes, and
-  namespaces. No speculative or "toy" structures unless explicitly marked
-  illustrative.
-- Persist changes as edits, never by mutating the document directly.
-- If a schema constraint or IEC semantic is uncertain, **stop and say so** rather
-  than guess: "I cannot be certain because the IEC 61850 constraint here depends
-  on…". Trust beats confident-sounding error.
-
-## Design heuristics — generalize across the IEC model
-
-When solving a problem for one SCL element, check it generalizes before committing:
-
-- Does this hold across other IEC elements, or are we hardcoding LN / DO / DA /
-  IED assumptions?
-- Does it hold across Editions (Ed1 / Ed2 / Ed2.1)?
-- Are namespaces and required attributes respected?
-
-Never design only for the easy case.
-
-## Performance & scale
-
-Assume large SCL files: many IEDs (1000+), deep nesting, frequent edits.
-
-- Avoid repeated full-document traversals and hidden quadratic loops.
-- Avoid expensive recalculation inside reactive updates.
-- Call out performance and document-size scaling risks proactively.
-
-## Accessibility
-
-- Interactive elements should be keyboard accessible. If this adds complexity - call it out to the user.
-- Maintain correct ARIA roles/attributes for semantic controls.
-- Changes to interaction behavior must preserve or improve accessibility.
+Record decisions, completed work and the current plan there rather than in
+tool-private memory — a reviewable file in version control beats hidden state.
+If the worklog and the code disagree, the code is usually the truth: say so, and
+reconcile.
 
 ## Interaction posture
 
-- Act as a sparring partner, not an order-taker: challenge assumptions and surface
-  trade-offs rather than silently complying.
-- Ask clarifying questions when a request is vague or domain-ambiguous; do not
-  silently assume IEC semantics.
-- When trade-offs exist, present the minimal option vs the scalable option and
-  flag coupling, schema-coupling, and performance risks.
-- Always present the user with the "plan of action" and only implement/change code when given the green light.
+- Be a sparring partner, not an order-taker. Challenge assumptions and surface
+  trade-offs instead of silently complying.
+- Ask when a request is vague or ambiguous. Do not assume domain semantics.
+- Present the plan of action first; change code only on a green light.
+- When trade-offs exist, give the minimal option and the scalable one, and name
+  the coupling and performance risks.
+- Never fabricate certainty. "I can't be sure because…" beats a confident error.
 
 ## Working style
 
-- Inspect the repo first; make targeted, behavior-preserving changes; verify with
-  the smallest useful command; report what changed, what was verified, and any
-  remaining risk.
+- Inspect first. Make targeted, behaviour-preserving changes. Verify with the
+  smallest useful command. Report what changed, what was verified, and what risk
+  remains.
 - Prefer existing local patterns over new abstractions.
-- Respect uncommitted user changes; never revert unrelated work; no destructive
-  git commands unless explicitly requested. Ask before ever executing a git command which changes something.
-- WTR is used for both unit tests and VTR tests. Where practical, consider the VTR harness when you need to render to the browser DOM to check or diagnose code.
+- Respect uncommitted changes and never revert unrelated work.
+- I run `prettier` and other formatting-only tooling myself. Don't invoke it or
+  tidy whitespace unless asked.
 
-## Visual regression testing
+## Keep this true
 
-  - VTR screenshot baselines are CI-owned.
-  - Never update or commit visual baselines locally.
-  - Local visual differences may be inspected diagnostically, but only CI-generated VTR results are
-  authoritative.
-  - Do not treat local VTR differences as release-blocking unless CI reproduces them.
-
-## This is a living document
-
-If conventions or architectural norms shift, explicitly recommend updating this
-instruction set (or the relevant SKILL.md) so these instructions stays consistent with
-reality. Skills and agents are the source of truth; keep them true.
+If conventions shift, say so and recommend updating this file or the relevant
+`SKILL.md`. Skills and agents are the source of truth; keep them true.
