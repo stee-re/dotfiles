@@ -94,6 +94,8 @@ For focused unit verification after build:
 
 - `npx wtr --files dist/path/to/spec.js --playwright --browsers chromium`
 
+The user runs `prettier` (and similar formatting-only tooling) themselves after edits. Do not invoke `prettier` on their behalf; leave formatting/whitespace cleanup to them unless explicitly asked.
+
 For test reliability:
 
 - Do not pass DOM nodes directly to `expect`; assert primitives, strings, booleans, or counts.
