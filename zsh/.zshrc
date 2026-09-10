@@ -513,6 +513,14 @@ if [ -d "$HOME/.opencode/bin" ]; then
   export PATH="$HOME/.opencode/bin:$PATH"
 fi
 
+
+#######################################################
+# Init MISE (used to manage Node versions (and more))
+#######################################################
+
+eval "$(/home/steren00/.local/bin/mise activate zsh)"
+
+
 #######################################################
 # PROMPT & INIT
 #######################################################
