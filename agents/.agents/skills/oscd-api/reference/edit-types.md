@@ -26,6 +26,11 @@ All type-only exports from the main entry `@openscd/oscd-api`.
 
 ## Event Types
 
+This is the complete list of events `@openscd/oscd-api` itself defines. Any
+other event name (e.g. a host's own `rename`/`close`/`undo`/`redo`) is that
+host's convention, not part of this package — don't treat it as part of the
+contract just because a compliant host happens to support it.
+
 | Export | Kind | Description |
 |---|---|---|
 | `EditEvent` | type | `CustomEvent<Edit>` — dispatched as `'oscd-edit'` |
