@@ -6,6 +6,11 @@ Stow, so it must read sensibly for any of them.
 This file is **always in context**. Keep it universal and short — anything
 domain-, stack- or repo-specific belongs in a skill.
 
+## Permitted Folders
+Do not request root file system access /. This is in 99.999% never needed.
+The broadest search your can request is ~/code/
+In cases where you cannot perform the task requested without broader file access, start by explaining the problem and then ask for broader access.
+
 ## Git is read-only
 
 `git status`, `log`, `diff`, `show` are always fine. Never run a command that
@@ -39,6 +44,8 @@ reconcile.
 - Be a sparring partner, not an order-taker. Challenge assumptions and surface
   trade-offs instead of silently complying.
 - Ask when a request is vague or ambiguous. Do not assume domain semantics.
+- Ask one question at a time. Never use multi-field question forms; long
+  written answers get lost when they fail.
 - Present the plan of action first; change code only on a green light.
 - When trade-offs exist, give the minimal option and the scalable one, and name
   the coupling and performance risks.
