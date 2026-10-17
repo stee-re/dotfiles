@@ -39,10 +39,33 @@ name, different shape).
 **Note:** this host never sets `docVersion` at all — `editCount` is its only
 change counter (see `known-unsupported.md`), not an addition alongside one.
 
+## `com-pas/open-scd@0.35.3`
+
+The base host used by `com-pas/compas-open-scd`, local checkout convention:
+`~/code/com-pas/open-scd`. This is the `@compas-oscd/open-scd` package.
+
+Ground truth for plugin properties: `packages/openscd/src/addons/Layout.ts:renderPluginContent` (lines 644-655).
+Ground truth for event listeners: `packages/openscd/src/addons/Editor.ts:connectedCallback` (lines 123-141).
+
+**Compliant properties:** `doc`, `docName`, `docs`, `locale` (all from
+`addons/Layout.ts:renderPluginContent`).
+`editor` — same site, but typed `XMLEditor`, not `Transactor<EditV2>` (same
+name, different shape).
+
+**Compliant events (all `listens`):** `oscd-edit-v2` (line 138), `oscd-open`
+(line 140) — both from `addons/Editor.ts:connectedCallback`.
+
+**Legacy events:** `oscd-edit` (line 136, deprecated), `editor-action` (line 134,
+deprecated), `open-doc` (line 139, deprecated per `known-unsupported.md`).
+
+**Note:** this host sets `editCount` as its change counter (line 110 in
+`addons/Layout.ts`), never `docVersion` — live alias per `known-unsupported.md`.
+
 ## `com-pas/compas-open-scd`
 
-The monorepo under audit. Pins `@compas-oscd/open-scd@0.35.3` (contract
-above). Plugins are scattered across local `src/` (compas-editors, menu,
+The monorepo under audit. Pins `@compas-oscd/open-scd@0.35.3` (contract above),
+extends it by adding `compasApi` property (see `src/open-scd.ts:98` and
+`:157`). Plugins are scattered across local `src/` (compas-editors, menu,
 validators, locamation, addons), an npm dep `@compas-oscd/plugins`, and 11 git
 submodules under `packages/external-plugins/` — always find the actual plugin
 registry (`compas-plugins.ts`/`oscd-plugins.ts`/`public/js/plugins.js`) rather
@@ -116,6 +139,29 @@ against this one host's extra behaviour. All from
 
 ## Other repositories referenced but not (fully) catalogued
 
+### Plugin repositories referenced by com-pas/compas-open-scd
+
+Git submodules under `packages/external-plugins/` (some may need checkout):
+
+| Org/repo | Status | Location | Notes |
+|---|---|---|---|
+| (unknown org)/oscd-publisher | Git submodule | packages/external-plugins/oscd-publisher | Single plugin: Publisher |
+| openscd/oscd-plugins | Git submodule | packages/external-plugins/oscd-plugins (communication-explorer subfolder) | Single plugin: Communication Explorer |
+| (unknown org)/oscd-template-generator | Git submodule | packages/external-plugins/oscd-template-generator | Single plugin: Template Generator |
+| (unknown org)/oscd-subscriber-later-binding | Git submodule | packages/external-plugins/oscd-subscriber-later-binding | Single plugin: Subscribe (Later Binding) |
+| (unknown org)/scl-template-update | Git submodule | packages/external-plugins/scl-template-update | Single plugin: Template Update |
+| (unknown org)/scl-bay-template | Git submodule | packages/external-plugins/scl-bay-template | Single plugin: Bay Template |
+| (unknown org)/oscd-bay-template-editor | Git submodule | packages/external-plugins/oscd-bay-template-editor | Single plugin: Bay Template Editor |
+| openscd/oscd-editor-ied | Git submodule | packages/external-plugins/oscd-editor-ied | Single plugin: IED (external) |
+| (unknown org)/mbg-ied-extractor | Git submodule | packages/external-plugins/mbg-ied-extractor | Single plugin: Extract IED |
+| (unknown org)/scl-wizarding | Git submodule | packages/external-plugins/scl-wizarding | Single plugin: Wizarding |
+| (unknown org)/compas-bearingpoint-plugins | Unknown (not submodule) | External reference in plugins.js | Multiple plugins: plugins-hub + others |
+| (unknown org)/compas-transnetbw-plugins | Unknown (not submodule) | External reference in plugins.js | Multiple plugins: engineering-wizard, template-generator, location-manager, location-viewer, history-viewer, archive-explorer |
+
+**Status:** Submodules discovered via `.gitmodules` but **not all checked out locally**. Origins (github.com URLs) unknown — requires investigation. Bearingpoint and TransnetBW plugins referenced in config but source locations unknown.
+
+### Other repos (not yet investigated)
+
 | Org/repo | Package | Status |
 |---|---|---|
 | `omicronenergy/oscd-background-editv1` | `@omicronenergy/oscd-background-editv1` | Shim, see `known-unsupported.md` |
@@ -129,3 +175,8 @@ against this one host's extra behaviour. All from
 The "sideways" facet (host/DOM reach-through, e.g.
 `document.querySelector('open-scd')`, cross-plugin coupling) is in scope but
 not yet investigated for any host.
+
+**Plugin audit gaps (com-pas/compas-open-scd):**
+- Only 5 of 18 local compas-plugins audited; 13 remain
+- All 20 npm oscd-plugins from @compas-oscd/plugins not yet audited
+- 12+ external plugin repositories discovered but origins/source locations unknown — need to find github URLs or clone instructions
