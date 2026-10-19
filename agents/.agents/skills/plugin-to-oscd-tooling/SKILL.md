@@ -30,8 +30,13 @@ Reference migration: `oscd-editor-sld`.
 3. **Edit configs**: thin `tsconfig.json`, optional thin `eslint.config.js`;
    delete rollup/WTR/WDS/commitlint configs and `.husky/`; generate `.githooks/`
    via `npm run prepare`; workflows usually untouched.
-4. **Decide CEM explicitly** with the owner — keep or drop
-   `custom-elements.json`. Separate scope, never implied.
+4. **Decide CEM explicitly** — ask the owner whether there's a reason to keep
+   `custom-elements.json` generation. Separate scope, never implied; default to
+   dropping it if they give none. Dropping means removing all three: the
+   `"analyze": "oscd analyze"` script, the `"customElements":
+   "custom-elements.json"` package.json field, and the committed
+   `custom-elements.json` file itself — a partial removal leaves a stale
+   pointer or a dangling script.
 5. **Fix the README** same pass; stale lint/build/test prose is a defect.
 
 ## Pitfalls

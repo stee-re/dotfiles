@@ -25,11 +25,13 @@ resolution failure, test failure, CEM/README question).
    nothing in this ecosystem currently consumes. `oscd analyze`/`--analyze`
    flags are opt-in wrappers around the same `cem analyze` call the plugin
    already ran; migrating tooling does not require keeping or dropping CEM
-   generation. Decide this explicitly with the plugin owner and treat it as a
-   separate scope item, not an automatic side effect of the tooling swap. If
+   generation. Ask the plugin owner whether there's a reason to keep it;
+   treat it as a separate scope item, not an automatic side effect of the
+   tooling swap, and default to dropping it if they give no reason. If
    dropping it: delete `custom-elements.json`, the `analyze` script, the
    `customElements` package.json field, and any `--analyze` flags wired into
-   `build`/`bundle`/`start` scripts.
+   `build`/`bundle`/`start` scripts — a partial removal (e.g. deleting only
+   the file) leaves a stale pointer or dangling script behind.
 4. **README boilerplate goes stale — fix it, don't replicate it.** A "Tooling
    configs" README section claiming "the configuration is in the
    `package.json`" is a leftover from before the `oscd-tooling` migration — it
