@@ -1,48 +1,60 @@
 ---
 name: adapt-menu-template
-description: Reshape the oscd-template-menu standalone template into an editor plugin — class rename, ScopedElementsMixin, lit imports, docVersion, test and demo wiring.
+description: Load when selecting, pruning or renaming editor/menu entries from oscd-plugin-scafold, or adapting an older menu-only starter during a standalone migration.
 ---
 
-# Adapt Menu Template to Editor Plugin
+# Adapt the Plugin Scaffold
 
-**Use when**
-- `src/oscd-template-menu.ts` still exists in a scaffolded standalone plugin.
-- `oscd-template-menu` / `OscdTemplateMenu` identifiers remain anywhere in the package.
-- The entry point still uses `lit-element`, `@customElement`, `editCount`, or side-effect child imports.
+**Use when** selecting and adapting the editor/menu starter in an approved
+standalone migration.
 
-**Don't use for** — forbidden monorepo imports in the entry point: `$legacy-foundation-helpers` (`@openscd/open-scd` foundation), `$lit-translate-to-lit-localize` (translation), `$scoped-elements` (general scoped registration rules).
+**Don't use for** initial migration planning (`plugin-migration`), forbidden
+monorepo imports (`legacy-foundation-helpers`), translation
+(`lit-translate-to-lit-localize`) or general registration (`scoped-elements`).
 
 ## Problem
 
-The standalone template is menu-oriented (`oscd-template-menu`), running on demand via `run()`. Editor plugins render immediately and take `doc` / `docVersion`. The template must be reshaped and every template identifier renamed.
+The required basis is `oscd-plugin-scafold`, named/linked by
+`../plugin-migration/SKILL.md`. It contains two independent plugins; most
+targets need one. The existing skill name remains for compatibility, not as
+an instruction to convert every editor from a menu.
 
 ## Procedure
 
-1. Replace `src/oscd-template-menu.ts` with the legacy entry point content.
-2. Apply transformations a-j from `reference/transformations.md` (rename, lit imports, ScopedElementsMixin, scopedElements, `editCount` → `docVersion`, `.js` extensions, decorator removal, property pruning).
-3. Rename all template identifiers across src, tests, `custom-elements.json`, README, demo, and `package.json`; wire the demo — see `reference/rename-and-demo.md`.
-4. Remove menu-only test logic such as `await plugin.run()`.
+1. Read the approved worklog's destination, scaffold revision and required
+   plugin kind. Follow `../plugin-migration/reference/step-2.md` for
+   materialization and complete unused-plugin removal.
+2. Start editors from `src/oscd-editor-scafold.ts`, menus from
+   `src/oscd-menu-scafold.ts`; retain both only when required by the plan.
+   For a previously approved older menu-only workspace, reconcile its state
+   before replacing files; do not discard existing work.
+3. Replace retained example behavior with the selected legacy implementation.
+   Apply relevant source transformations from `reference/transformations.md`;
+   do not repeat conversions already present.
+4. Rename files, identifiers, exports, bundles, tests and demo references
+   together using `reference/rename-and-demo.md`. Replace placeholder tests
+   with behavior checks; editor specs must not call menu-only `run()`.
 
 ## Pitfalls
 
-- Replacing the Source Editor in `demo/plugins.js` instead of adding alongside it.
-- Leaving side-effect imports for children now listed in `scopedElements`.
-- Adding an `editor` property (only needed after Step 3).
+- Leaving the unused source/spec, export, bundle, demo entry or README reference.
+- Dropping the multi-entry override while filenames still differ from the
+  shared tooling's package-basename convention.
+- Replacing Source Editor instead of retaining it alongside the local plugin.
+- Treating this recipe as approval to implement during planning.
 
 ## Verify
 
-- `grep -ri 'oscd-template-menu\|OscdTemplateMenu' output/<plugin>/` returns no matches
-- Main source extends `ScopedElementsMixin(LitElement)`
-- Has `static scopedElements` listing all rendered children
-- No side-effect imports for scoped children
-- No `editCount` remains
-- No `@customElement` decorator on entry point
-- All relative imports have `.js` extensions
-- All `lit-element` imports rewritten to `lit` / `lit/decorators.js`
+- No discarded plugin or stale starter names in active source, demo, metadata,
+  configuration, docs or package artifacts; worklog provenance may retain names.
+- Retained components use scoped elements, `docVersion`, Lit 3 and relative
+  `.js` imports; no runtime global registration or legacy `editCount`.
+- `npm install`, `npx tsc --noEmit`, `npm run build`, `npm run bundle`,
+  `npm test` and `npm run lint` pass; retained demo plugins render/run.
 
 ## Reference
 
 | File | Read when |
 |---|---|
-| `reference/transformations.md` | Editing the main source file (steps a-j) |
-| `reference/rename-and-demo.md` | Renaming template identifiers or wiring `demo/plugins.js` |
+| `reference/transformations.md` | Adapting the retained legacy entry point |
+| `reference/rename-and-demo.md` | Renaming entries and wiring tests/demo |

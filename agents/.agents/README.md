@@ -23,11 +23,18 @@ committed alongside a project.
 
 ```
 agent-instructions.md   always loaded — universal rules only
+reference/
+  worklog-template.md   generic task worklog; use when no skill-specific template applies
 skills/
   TEMPLATE.md           the canonical skill shape (no frontmatter, never loaded)
   <name>/SKILL.md       one skill
   <name>/reference/     detail, loaded only on demand
 ```
+
+Task progress and plans belong in workspace worklogs, not tool-private memory.
+Reusable lessons belong in the shared instructions or the relevant skill.
+The migration skill supplies its own worklog template instead of the generic
+one. Both templates support a planning phase that stops for human approval.
 
 ## Progressive disclosure
 

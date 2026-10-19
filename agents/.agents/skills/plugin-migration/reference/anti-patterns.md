@@ -2,10 +2,10 @@
 
 Mistakes to never repeat.
 
-1. **Never skip step 2.** Even if a legacy plugin "looks standalone", it must be
-   scaffolded from `template/oscd-template-menu/`. The template defines canonical
-   config: `"type": "module"`, `NodeNext` resolution, `src/` directory, correct
-   scripts, modern devDeps. Copying a legacy repo inherits broken tooling.
+1. **Never skip the scaffold phase.** Use the template and destination resolved
+   in the approved worklog, not historical workspace paths. A standalone-looking
+   legacy tree does not establish suitable tooling; verify it against the
+   agreed scaffold.
 
 2. **Never apply source transforms before the project structure is correct.**
    Steps 3+ assume source lives in `src/`, builds to `dist/`, and that `npm i`
@@ -23,5 +23,10 @@ Mistakes to never repeat.
    registered). Local plugins use `tagName` with `registry.define()`. Remote
    plugins use a `src` URL. Never mix — an entry needs one or the other, not both.
 
-6. **Run verification in order after every step:** `npm i` → `tsc --noEmit` →
-   `npm run build`. Do not proceed until all three pass.
+6. **Run implementation verification in order after structural changes:**
+   `npm i` → `npx tsc --noEmit` → `npm run build`. Do not proceed until all
+   three pass. Planning requires document/evidence checks, not installation.
+
+7. **Never keep the only plan in the conversation or infer approval.**
+   Populate the worklog, resolve blocking questions, then stop for review and
+   explicit approval before copying code, scaffolding or transforming source.

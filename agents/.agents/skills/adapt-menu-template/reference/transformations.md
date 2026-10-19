@@ -1,6 +1,9 @@
 # Source transformations (Part 1)
 
-Replace `src/oscd-template-menu.ts` with the legacy entry point content, then apply a-j.
+Use the retained editor/menu entry selected under
+`../../plugin-migration/reference/step-2.md`. Replace its example behavior with
+the legacy implementation, then apply only the transformations below that
+remain necessary. Do not convert the scaffold's existing editor from a menu.
 
 ## a. Rename class
 ```ts
@@ -44,7 +47,7 @@ static scopedElements = { 'fcda-binding-list': FcdaBindingList };
 ```
 
 ## f-g. Replace forbidden imports
-See `$legacy-foundation-helpers` and `$lit-translate-to-lit-localize` skills.
+See `legacy-foundation-helpers` and `lit-translate-to-lit-localize` skills.
 
 ## h. Add `.js` extensions to all relative imports
 
@@ -54,4 +57,5 @@ See `$legacy-foundation-helpers` and `$lit-translate-to-lit-localize` skills.
 
 **Always required:** `doc`, `docVersion`
 **Keep only if referenced:** `nsdoc`, `docs`, `docName`, `locale`
-**Do NOT add:** `editor` (only needed after Step 3)
+**Keep only if used:** `editor` for direct Transactor API usage; event-based
+plugins do not need an unused property. Do not infer need from a phase number.

@@ -1,63 +1,66 @@
 ---
 name: plugin-migration
-description: Orchestrates migrating a legacy OpenSCD monorepo plugin into a standalone package. Load when starting or resuming a migration, or when asked which step comes next.
+description: Load when analysing, planning, starting or resuming a legacy OpenSCD plugin migration into a standalone package, including requests to plan without implementing.
 ---
 
 # Plugin Migration Orchestrator
 
-**Use when** moving a legacy plugin out of the monorepo into a standalone npm
-package, or resuming a migration already in progress.
+**Use when** planning or executing a legacy OpenSCD plugin migration.
 
-**Don't use for** individual transformations — each step names the recipe skill
-that owns it. This skill only sequences them.
+**Don't use for** individual transformations; the linked recipes own those.
 
-**Escalate to** — `iec-61850` if a step exposes SCL manipulation whose
-correctness is unclear, particularly when porting legacy code that constructs or
-reorders elements. Routine porting does not need it.
-
-## Before starting
-
-1. Read the plugin's brief in `./migrations/<plugin>.md`.
-2. Check its "Step Status" to find the next step.
-3. Work only in `output/<plugin-name>/`. Never edit `legacy/`, `libs/`, or
-   `template/`.
+**Escalate to** `iec-61850` when SCL semantics or schema correctness are unclear.
 
 ## Sequence
 
-| Step | Goal | Load | Exit |
-|---|---|---|---|
-| 1 | Migration brief detailed enough to execute without rediscovery | `scl-lib`, `oscd-api`, `oscd-ui` | Brief complete; no re-inventorying needed for step 2 |
-| 2 | A compiling standalone package scaffolded from the template | `adapt-menu-template`, `legacy-foundation-helpers`, `legacy-xml-helpers`, `deprecated-editor-actions`, `lit-translate-to-lit-localize`, `scoped-elements`, `nsdoc-standalone` | See `reference/step-2.md` |
-| 3 | All deprecated editor actions replaced by EditV2 | `editv1-to-editv2`, `oscd-api` | No deprecated action imports; all edits via `newEditEventV2`; behaviour unchanged; tests pass |
-| 4 | Legacy wizards replaced by `oscd-scl-dialogs` where supported | `scl-dialogs-embedding` | Supported wizards replaced; gaps documented; dialogs emit valid edits; tests pass |
-| 5 | All legacy UI replaced by `@omicronenergy/oscd-ui` | `mwc-to-oscd-ui`, `oscd-ui`, `scl-icons`, `filtered-list-to-oscd-ui` | No `mwc-*`, `md-*` or `@openenergytools/*` UI imports in `src/`; UI renders; tests pass |
-| 6 | Dialogs embedded in the plugin root, host-independent | `scl-dialogs-embedding` | Dialog opens from the embedded instance; events don't escape the plugin; builds and tests pass |
+1. **Establish the workspace.** Read its designated worklog, `worklog.md` or
+   `<plugin-name>.md`; confirm it matches the request. Ask about mismatches or
+   competing logs. In an empty folder, ask whether it is the migration
+   destination. Resolve other ambiguous layouts with the user. Do not assume
+   `migrations/`, `legacy/`, `libs/`, `template/` or `output/`.
+2. **Analyse and document; no implementation.** Follow `reference/step-1.md`.
+   Create the agreed worklog using `reference/migration-worklog-template.md`,
+   not the generic template; preserve suitable existing logs. Inventory only
+   the selected plugin and its dependencies. Record resources, source state,
+   technical findings, decisions and phased verification. Load `scl-lib`,
+   `oscd-api` and `oscd-ui` for relevant API questions. Ask unresolved questions
+   one at a time and record answers. Use
+   [oscd-plugin-scafold](https://github.com/OMICRONEnergyOSS/oscd-plugin-scafold)
+   as the target basis; see `reference/step-2.md`.
+3. **Approval gate.** Save the full technical analysis and plan. Tell the user
+   where it is and to review and approve it. Stop. Record explicit approval
+   and its scope before implementation; material revisions need renewed approval.
+4. **Implement approved phases only**, preserving behavior without unrelated
+   logic changes and recording legacy defects separately:
 
-**Step 2 is never "N/A"** — even a plugin that already looks standalone must be
-scaffolded from `template/oscd-template-menu/`. Skipping it inherits broken
-legacy tooling. See `reference/step-2.md`.
+   | Phase | Guidance | Exit |
+   |---|---|---|
+   | Standalone scaffold/adaptations | `reference/step-2.md` | Builds/renders; unused plugin purged |
+   | Deprecated actions | `editv1-to-editv2`, `oscd-api` | EditV2; behavior preserved |
+   | Supported wizards | `scl-dialogs-embedding` | Gaps recorded; valid edits |
+   | Legacy UI | `mwc-to-oscd-ui`, `oscd-ui` | Replaced; renders |
+   | Host-independent dialogs | `scl-dialogs-embedding` | Embedded; events contained |
 
-## Rules
-
-- Never change logic. Only imports, types, registrations and property shapes.
-- Flag code smells for later review; do not fix them during migration.
-- Migrate one plugin at a time, but analyse all up front for shared code.
-- Update the brief's Step Status after each step.
+   Reconcile partial prior conversions before scheduling work. Update Step
+   Status and use `worklog-completion-summary` after each phase.
 
 ## Verify
 
-After **every** structural change, in this order:
+Planning: the populated worklog exists; resources resolve or are explicitly
+blocked; questions and answers are recorded; prerequisites and exit criteria
+are concrete; approval is pending, not inferred. No code was copied, migrated
+or scaffolded, and no dependencies were installed.
 
-```
-npm i && npx tsc --noEmit && npm run build
-```
-
-Confirm `dist/` contains no source files (`rootDir` must be `./src`). Do not
-start the next step until all three pass.
+Implementation: follow the approved phase checks, including
+`npm i` -> `npx tsc --noEmit` -> `npm run build` after structural changes.
+Verify applicable tests and demo behavior, and that `dist/` contains only
+intended build artifacts (`rootDir: ./src`). Record outcomes before proceeding.
 
 ## Reference
 
 | File | Read when |
 |---|---|
-| `reference/step-2.md` | Executing step 2 — full procedure, import-rewriting rules and exit criteria |
-| `reference/anti-patterns.md` | Before starting any step, and when a migration has gone wrong |
+| `reference/step-1.md` | Starting analysis or reconciling a migration plan |
+| `reference/migration-worklog-template.md` | Creating or checking the migration worklog |
+| `reference/step-2.md` | Planning or executing standalone scaffolding |
+| `reference/anti-patterns.md` | Checking phase readiness or investigating a migration failure |

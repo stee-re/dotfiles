@@ -1,24 +1,24 @@
 ---
 name: worklog-completion-summary
-description: Structure for a "Step N Completion Summary" worklog entry. Use when finishing a unit of multi-step work and recording it in a repo worklog (REFACTORING.md, a migration brief, etc.).
+description: Load when recording completion of a task step or phase in a worklog, including planning; not for creating the initial plan.
 ---
 
 # Worklog Completion Summary
 
 **Use when** finishing a step, phase, or discrete unit of work that must be
-recorded in a repo worklog (e.g. `REFACTORING.md`, a migration brief under
-`migrations/*.md`) so a later session or reviewer can pick up without
+recorded in a task worklog (e.g. `worklog.md`, `<plugin-name>.md` or
+`REFACTORING.md`) so a later session or reviewer can pick up without
 re-deriving what happened.
 
-**Don't use for** the worklog's overall structure (Metadata, Step Status, plan
-sections) — those are repo-specific; this skill only shapes the per-step
-summary block appended once a step is done.
+**Don't use for** initial worklog creation or overall structure; use the owning
+task skill's template, otherwise `~/.agents/reference/worklog-template.md`.
 
 ## Rules
 
 Append one `## Step N Completion Summary` heading per completed step, directly
 after the worklog's `## Step Status` list, and flip that step's status line to
-`done` in the same edit.
+`done` in the same edit. Preserve existing filename and layout. Completing a
+planning step does not approve implementation; keep approval separate.
 
 Break the summary into `###` subsections, using only the ones that apply —
 never force an empty one:
