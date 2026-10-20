@@ -9,7 +9,9 @@ description: Load when analysing, planning, starting or resuming a legacy OpenSC
 
 **Don't use for** individual transformations; the linked recipes own those.
 
-**Escalate to** `iec-61850` when SCL semantics or schema correctness are unclear.
+**Escalate to** `iec-61850` only when the migration changes or validates SCL
+semantics or schema correctness; being in an OpenSCD repository alone is not a
+reason to load IEC 61850 domain guidance.
 
 ## Sequence
 
