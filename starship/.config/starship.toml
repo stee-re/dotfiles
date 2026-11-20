@@ -3,10 +3,9 @@
 format = """
 [](red)\
 $os\
-$username\
 [](bg:peach fg:red)\
 $directory\
-[](bg:yellow fg:peach)\
+[](bg:green fg:peach)\
 $git_branch\
 $git_status\
 [ ](fg:yellow)\
@@ -62,12 +61,12 @@ truncation_symbol = "…/"
 
 [git_branch]
 symbol = ""
-style = "bg:yellow"
-format = '[[ $symbol $branch ](fg:crust bg:yellow)]($style)'
+style = "bg:green"
+format = '[[ $symbol $branch ](fg:crust bg:green)]($style)'
 
 [git_status]
-style = "bg:yellow"
-format = '[[($all_status$ahead_behind )](fg:crust bg:yellow)]($style)'
+style = "bg:green"
+format = '[[($all_status$ahead_behind )](fg:crust bg:green)]($style)'
 
 [nodejs]
 symbol = ""
