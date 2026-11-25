@@ -471,6 +471,10 @@ trim() {
   echo -n "$var"
 }
 
+tm() {
+  cd -- "$HOME/Documents/Obsidian Vault/steeren00" && copilot "$@"
+}
+
 gcom() {
   git add .
   git commit -m "$1"
