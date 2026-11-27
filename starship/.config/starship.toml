@@ -5,10 +5,9 @@ format = """
 $os\
 [](bg:peach fg:red)\
 $directory\
-[](bg:green fg:peach)\
 $git_branch\
 $git_status\
-[ ](fg:yellow)\
+[ ](fg:prev_bg)\
 $line_break\
 $character"""
 
@@ -61,12 +60,10 @@ truncation_symbol = "…/"
 
 [git_branch]
 symbol = ""
-style = "bg:green"
-format = '[[ $symbol $branch ](fg:crust bg:green)]($style)'
+format = '[](bg:green fg:peach)[ $symbol $branch ](fg:crust bg:green)'
 
 [git_status]
-style = "bg:green"
-format = '[[($all_status$ahead_behind )](fg:crust bg:green)]($style)'
+format = '[($all_status )](fg:crust bg:green)([](fg:green bg:yellow)[ $ahead_behind ](fg:crust bg:yellow))'
 
 [nodejs]
 symbol = ""
